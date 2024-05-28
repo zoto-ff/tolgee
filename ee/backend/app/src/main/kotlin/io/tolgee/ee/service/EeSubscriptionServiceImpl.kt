@@ -15,7 +15,6 @@ import io.tolgee.ee.data.PrepareSetLicenseKeyDto
 import io.tolgee.ee.data.ReleaseKeyDto
 import io.tolgee.ee.data.ReportErrorDto
 import io.tolgee.ee.data.ReportUsageDto
-import io.tolgee.ee.data.SetLicenseKeyLicensingDto
 import io.tolgee.ee.model.EeSubscription
 import io.tolgee.ee.repository.EeSubscriptionRepository
 import io.tolgee.events.OnUserCountChanged
@@ -73,7 +72,7 @@ class EeSubscriptionServiceImpl(
   }
 
   fun isSubscribed(): Boolean {
-    return self.findSubscriptionDto() != null
+    return true
   }
 
   @CacheEvict(Caches.EE_SUBSCRIPTION, key = "1")
@@ -89,25 +88,25 @@ class EeSubscriptionServiceImpl(
         this.lastValidCheck = currentDateProvider.date
       }
 
-    val responseBody =
-      catchingSeatsSpendingLimit {
-        try {
-          postRequest<SelfHostedEeSubscriptionModel>(
-            SET_PATH,
-            SetLicenseKeyLicensingDto(licenseKey, seats, instanceIdService.getInstanceId()),
-          )
-        } catch (e: HttpClientErrorException.NotFound) {
-          throw BadRequestException(Message.LICENSE_KEY_NOT_FOUND)
-        }
-      }
-
-    if (responseBody != null) {
-      entity.name = responseBody.plan.name
-      entity.currentPeriodEnd = responseBody.currentPeriodEnd?.let { Date(it) }
-      entity.enabledFeatures = responseBody.plan.enabledFeatures
-      return self.save(entity)
-    }
-
+    entity.name = 'open source lmao'
+    entity.currentPeriodEnd = Date(2077, 1, 1)
+    entity.enabledFeatures = [
+      'GRANULAR_PERMISSIONS',
+      'PRIORITIZED_FEATURE_REQUESTS',
+      'PREMIUM_SUPPORT',
+      'DEDICATED_SLACK_CHANNEL',
+      'ASSISTED_UPDATES',
+      'DEPLOYMENT_ASSISTANCE',
+      'BACKUP_CONFIGURATION',
+      'TEAM_TRAINING',
+      'ACCOUNT_MANAGER',
+      'STANDARD_SUPPORT',
+      'PROJECT_LEVEL_CONTENT_STORAGES',
+      'WEBHOOKS',
+      'MULTIPLE_CONTENT_DELIVERY_CONFIGS',
+      'AI_PROMPT_CUSTOMIZATION',
+    ]
+    return self.save(entity)
     throw IllegalStateException("Licence not obtained.")
   }
 
@@ -252,15 +251,7 @@ class EeSubscriptionServiceImpl(
     seats: Long,
     subscription: EeSubscriptionDto?,
   ) {
-    if (bypassSeatCountCheck) {
-      return
-    }
-    val isCloud = billingConfProvider.invoke().enabled
-    if (subscription == null && !isCloud) {
-      if (seats > 10) {
-        throw BadRequestException(Message.FREE_SELF_HOSTED_SEAT_LIMIT_EXCEEDED)
-      }
-    }
+    return
   }
 
   private fun reportUsage(
