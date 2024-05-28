@@ -23,6 +23,10 @@ import io.tolgee.events.OnUserCountChanged
 import io.tolgee.exceptions.BadRequestException
 import io.tolgee.exceptions.ErrorResponseBody
 import io.tolgee.hateoas.ee.PrepareSetEeLicenceKeyModel
+import io.tolgee.hateoas.ee.PlanPricesModel
+import io.tolgee.hateoas.ee.uasge.UsageModel
+import io.tolgee.hateoas.ee.uasge.AverageProportionalUsageItemModel
+import io.tolgee.hateoas.ee.SelfHostedEePlanModel
 import io.tolgee.hateoas.ee.SelfHostedEeSubscriptionModel
 import io.tolgee.service.InstanceIdService
 import io.tolgee.service.security.UserAccountService
@@ -64,6 +68,36 @@ class EeSubscriptionServiceImpl(
 
   var bypassSeatCountCheck = false
 
+  var features = arrayOf(
+    Feature.GRANULAR_PERMISSIONS,
+    Feature.PRIORITIZED_FEATURE_REQUESTS,
+    Feature.PREMIUM_SUPPORT,
+    Feature.DEDICATED_SLACK_CHANNEL,
+    Feature.ASSISTED_UPDATES,
+    Feature.DEPLOYMENT_ASSISTANCE,
+    Feature.BACKUP_CONFIGURATION,
+    Feature.TEAM_TRAINING,
+    Feature.ACCOUNT_MANAGER,
+    Feature.STANDARD_SUPPORT,
+    Feature.PROJECT_LEVEL_CONTENT_STORAGES,
+    Feature.WEBHOOKS,
+    Feature.MULTIPLE_CONTENT_DELIVERY_CONFIGS,
+    Feature.AI_PROMPT_CUSTOMIZATION,
+    )
+
+  var mockedPlan = SelfHostedEePlanModel(
+    id = 19919,
+    name = "Tolgee",
+    public = true,
+    enabledFeatures = features,
+    prices =
+      PlanPricesModel(
+        perSeat = 20.toBigDecimal(),
+        subscriptionMonthly = 200.toBigDecimal(),
+      ),
+    free = false,
+  )
+
   @Cacheable(Caches.EE_SUBSCRIPTION, key = "1")
   override fun findSubscriptionDto(): EeSubscriptionDto? {
     return this.findSubscriptionEntity()?.toDto()
@@ -92,39 +126,35 @@ class EeSubscriptionServiceImpl(
 
     entity.name = "open source lmao"
     entity.currentPeriodEnd = Date(2077, 1, 1)
-    entity.enabledFeatures = arrayOf(
-      Feature.GRANULAR_PERMISSIONS,
-      Feature.PRIORITIZED_FEATURE_REQUESTS,
-      Feature.PREMIUM_SUPPORT,
-      Feature.DEDICATED_SLACK_CHANNEL,
-      Feature.ASSISTED_UPDATES,
-      Feature.DEPLOYMENT_ASSISTANCE,
-      Feature.BACKUP_CONFIGURATION,
-      Feature.TEAM_TRAINING,
-      Feature.ACCOUNT_MANAGER,
-      Feature.STANDARD_SUPPORT,
-      Feature.PROJECT_LEVEL_CONTENT_STORAGES,
-      Feature.WEBHOOKS,
-      Feature.MULTIPLE_CONTENT_DELIVERY_CONFIGS,
-      Feature.AI_PROMPT_CUSTOMIZATION,
-      )
+    entity.enabledFeatures = features
     return self.save(entity)
     throw IllegalStateException("Licence not obtained.")
   }
 
   fun prepareSetLicenceKey(licenseKey: String): PrepareSetEeLicenceKeyModel {
-    val seats = userAccountService.countAllEnabled()
-    val responseBody =
-      catchingSeatsSpendingLimit {
-        try {
-          postRequest<PrepareSetEeLicenceKeyModel>(
-            PREPARE_SET_KEY_PATH,
-            PrepareSetLicenseKeyDto(licenseKey, seats),
+    val responseBody = PrepareSetEeLicenceKeyModel().apply {
+      plan = mockedPlan
+      usage =
+        UsageModel(
+          subscriptionPrice = 200.toBigDecimal(),
+          seats =
+            AverageProportionalUsageItemModel(
+              total = 250.toBigDecimal(),
+              usedQuantity = 2.toBigDecimal(),
+              unusedQuantity = 10.toBigDecimal(),
+              usedQuantityOverPlan = 0.toBigDecimal(),
+              ),
+          total = 250.toBigDecimal(),
+          translations =
+            AverageProportionalUsageItemModel(
+              total = 0.toBigDecimal(),
+              unusedQuantity = 0.toBigDecimal(),
+              usedQuantity = 0.toBigDecimal(),
+              usedQuantityOverPlan = 0.toBigDecimal(),
+              ),
+          credits = null,
           )
-        } catch (e: HttpClientErrorException.NotFound) {
-          throw BadRequestException(Message.LICENSE_KEY_NOT_FOUND)
-        }
-      }
+    }
 
     if (responseBody != null) {
       return responseBody
@@ -161,23 +191,6 @@ class EeSubscriptionServiceImpl(
   @CacheEvict(Caches.EE_SUBSCRIPTION, key = "1")
   fun refreshSubscription() {
     val subscription = this.findSubscriptionEntity()
-    if (subscription != null) {
-      val responseBody =
-        try {
-          getRemoteSubscriptionInfo(subscription)
-        } catch (e: HttpClientErrorException.BadRequest) {
-          val error = e.parseBody()
-          if (error.code == Message.LICENSE_KEY_USED_BY_ANOTHER_INSTANCE.code) {
-            setSubscriptionKeyUsedByOtherInstance(subscription)
-          }
-          null
-        } catch (e: Exception) {
-          reportError(e.stackTraceToString())
-          null
-        }
-      updateLocalSubscription(responseBody, subscription)
-      handleConstantlyFailingRemoteCheck(subscription)
-    }
   }
 
   private fun setSubscriptionKeyUsedByOtherInstance(subscription: EeSubscription) {
@@ -214,15 +227,17 @@ class EeSubscriptionServiceImpl(
 
   private fun getRemoteSubscriptionInfo(subscription: EeSubscription): SelfHostedEeSubscriptionModel? {
     val responseBody =
-      try {
-        postRequest<SelfHostedEeSubscriptionModel>(
-          SUBSCRIPTION_INFO_PATH,
-          GetMySubscriptionDto(subscription.licenseKey, instanceIdService.getInstanceId()),
-        )
-      } catch (e: HttpClientErrorException.NotFound) {
-        subscription.status = SubscriptionStatus.CANCELED
-        null
-      }
+      SelfHostedEeSubscriptionModel(
+        id = 19919,
+        currentPeriodEnd = 1624313600000,
+        createdAt = 1624313600000,
+        plan = mockedPlan,
+        status = SubscriptionStatus.ACTIVE,
+        licenseKey = "mocked_license_key",
+        estimatedCosts = 200.toBigDecimal(),
+        currentPeriodStart = 1622313600000,
+      )
+
     return responseBody
   }
 

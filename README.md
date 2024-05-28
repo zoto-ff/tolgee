@@ -15,7 +15,7 @@ just replace 'tolgee/tolgee' to 'zotofff/mytolgee' in your docker-compose.yml
 install node & npm, jdk 17, then:
 ```shell
 npm ci
-./gradlew build -x test (ctrl + c when webapp tests started :))
+./gradlew build -x test # (ctrl + c when webapp tests started :))
 ./gradlew bootJar
 ```
 
