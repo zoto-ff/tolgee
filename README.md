@@ -24,5 +24,5 @@ build docker image & upload to hub
 ./gradlew dockerPrepare
 cd build/docker
 # docker login
-docker build . -t yourname/tolgee --push
+docker build . -t yourname/tolgee --platform linux/amd64 --push
 ```
