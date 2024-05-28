@@ -10,18 +10,6 @@ buildscript {
     }
 }
 
-plugins {
-    id("org.jlleitschuh.gradle.ktlint") version "12.0.3"
-}
-
-subprojects {
-    if (project.projectDir.exists()) {
-        apply {
-            plugin("org.jlleitschuh.gradle.ktlint")
-        }
-    }
-}
-
 project.ext {
     dbSchemaContainerName = 'tolgee_postgres_dbschema'
 }
@@ -80,7 +68,6 @@ project(':server-app').afterEvaluate {
 
     task check {
         dependsOn project(':server-app').tasks.findByName("check")
-        dependsOn ktlint
     }
 
     task bootJar {
@@ -130,11 +117,6 @@ project(':server-app').afterEvaluate {
             project(':server-app').bootRun.systemProperty('spring.profiles.active', 'dbschema')
         }
     }
-}
-
-ktlint {
-    debug = true
-    verbose = true
 }
 
 rootProject.subprojects {

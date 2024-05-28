@@ -36,7 +36,6 @@ configurations {
     runtimeClasspath {
         extendsFrom developmentOnly
     }
-    ktlint
 }
 
 apply plugin: 'java'
@@ -220,12 +219,4 @@ jar {
 
 tasks.named('compileJava') {
     inputs.files(tasks.named('processResources'))
-}
-
-ktlint {
-    debug = true
-    verbose = true
-    filter {
-        exclude("**/PluralData.kt")
-    }
 }

@@ -31,7 +31,6 @@ configurations {
     runtimeClasspath {
         extendsFrom developmentOnly
     }
-    ktlint
 }
 
 apply plugin: 'java'
