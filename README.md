@@ -11,6 +11,9 @@ An "open-source" (but paid lol) alternative to Crowdin, Phrase or Lokalise
 ### Using
 just replace 'tolgee/tolgee' to 'zotofff/mytolgee' in your docker-compose.yml
 
+### Activation
+go to /administration/ee-license and enter any license key
+
 ### Build
 install node & npm, jdk 17, then:
 ```shell
