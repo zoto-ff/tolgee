@@ -8,7 +8,9 @@ import io.tolgee.component.CurrentDateProvider
 import io.tolgee.component.HttpClient
 import io.tolgee.component.publicBillingConfProvider.PublicBillingConfProvider
 import io.tolgee.constants.Caches
+import io.tolgee.constants.Feature
 import io.tolgee.constants.Message
+
 import io.tolgee.ee.EeProperties
 import io.tolgee.ee.data.GetMySubscriptionDto
 import io.tolgee.ee.data.PrepareSetLicenseKeyDto
@@ -88,24 +90,24 @@ class EeSubscriptionServiceImpl(
         this.lastValidCheck = currentDateProvider.date
       }
 
-    entity.name = 'open source lmao'
+    entity.name = "open source lmao"
     entity.currentPeriodEnd = Date(2077, 1, 1)
-    entity.enabledFeatures = [
-      'GRANULAR_PERMISSIONS',
-      'PRIORITIZED_FEATURE_REQUESTS',
-      'PREMIUM_SUPPORT',
-      'DEDICATED_SLACK_CHANNEL',
-      'ASSISTED_UPDATES',
-      'DEPLOYMENT_ASSISTANCE',
-      'BACKUP_CONFIGURATION',
-      'TEAM_TRAINING',
-      'ACCOUNT_MANAGER',
-      'STANDARD_SUPPORT',
-      'PROJECT_LEVEL_CONTENT_STORAGES',
-      'WEBHOOKS',
-      'MULTIPLE_CONTENT_DELIVERY_CONFIGS',
-      'AI_PROMPT_CUSTOMIZATION',
-    ]
+    entity.enabledFeatures = arrayOf(
+      Feature.GRANULAR_PERMISSIONS,
+      Feature.PRIORITIZED_FEATURE_REQUESTS,
+      Feature.PREMIUM_SUPPORT,
+      Feature.DEDICATED_SLACK_CHANNEL,
+      Feature.ASSISTED_UPDATES,
+      Feature.DEPLOYMENT_ASSISTANCE,
+      Feature.BACKUP_CONFIGURATION,
+      Feature.TEAM_TRAINING,
+      Feature.ACCOUNT_MANAGER,
+      Feature.STANDARD_SUPPORT,
+      Feature.PROJECT_LEVEL_CONTENT_STORAGES,
+      Feature.WEBHOOKS,
+      Feature.MULTIPLE_CONTENT_DELIVERY_CONFIGS,
+      Feature.AI_PROMPT_CUSTOMIZATION,
+      )
     return self.save(entity)
     throw IllegalStateException("Licence not obtained.")
   }
