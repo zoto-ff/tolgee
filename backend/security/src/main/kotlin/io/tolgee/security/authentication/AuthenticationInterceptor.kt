@@ -51,20 +51,6 @@ class AuthenticationInterceptor(
     val allowApiAccess = AnnotationUtils.getAnnotation(handler.method, AllowApiAccess::class.java)
     val requiresSuperAuth = requiresSuperAuthentication(handler)
 
-    if (authenticationFacade.isApiAuthentication) {
-      if (allowApiAccess == null) {
-        throw PermissionException(Message.API_ACCESS_FORBIDDEN)
-      }
-
-      if (authenticationFacade.isPersonalAccessTokenAuth && !isPatAllowed(allowApiAccess)) {
-        throw PermissionException(Message.PAT_ACCESS_NOT_ALLOWED)
-      }
-
-      if (authenticationFacade.isProjectApiKeyAuth && !isPakAllowed(allowApiAccess)) {
-        throw PermissionException(Message.PAK_ACCESS_NOT_ALLOWED)
-      }
-    }
-
     if (
       requiresSuperAuth &&
       authenticationFacade.authenticatedUser.needsSuperJwt &&
