@@ -51,14 +51,6 @@ class AuthenticationInterceptor(
     val allowApiAccess = AnnotationUtils.getAnnotation(handler.method, AllowApiAccess::class.java)
     val requiresSuperAuth = requiresSuperAuthentication(handler)
 
-    if (
-      requiresSuperAuth &&
-      authenticationFacade.authenticatedUser.needsSuperJwt &&
-      !authenticationFacade.isUserSuperAuthenticated
-    ) {
-      throw PermissionException(Message.EXPIRED_SUPER_JWT_TOKEN)
-    }
-
     return true
   }
 

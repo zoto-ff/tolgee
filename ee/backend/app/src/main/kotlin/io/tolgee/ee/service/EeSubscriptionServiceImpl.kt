@@ -275,13 +275,7 @@ class EeSubscriptionServiceImpl(
     seats: Long,
     subscription: EeSubscriptionDto?,
   ) {
-    if (subscription != null) {
-      catchingSeatsSpendingLimit {
-        catchingLicenseNotFound {
-          reportUsageRemote(subscription, seats)
-        }
-      }
-    }
+
   }
 
   fun <T> catchingLicenseNotFound(fn: () -> T): T {
@@ -327,18 +321,6 @@ class EeSubscriptionServiceImpl(
   @Transactional
   @CacheEvict(Caches.EE_SUBSCRIPTION, key = "1")
   fun releaseSubscription() {
-    val subscription = findSubscriptionEntity()
-    if (subscription != null) {
-      try {
-        releaseKeyRemote(subscription)
-      } catch (e: HttpClientErrorException.NotFound) {
-        val licenceKeyNotFound = e.message?.contains(Message.LICENSE_KEY_NOT_FOUND.code) == true
-        if (!licenceKeyNotFound) {
-          throw e
-        }
-      }
 
-      eeSubscriptionRepository.deleteAll()
-    }
   }
 }
